@@ -2,11 +2,13 @@ import re
 import sys
 from os import scandir
 import json
+import pickle
 
 
 clean_re = re.compile('[_\W]+')
 posting_list = dict()
 news_table = dict()
+dicDoc = {}
 
 def clean_text(text):
     return clean_re.sub(' ', text).lower()
@@ -25,9 +27,8 @@ def add_to_news_table(docId, pos, newsId):
 def read_noticias(text):
     with open(text) as json_file:
         return json.load(json_file)
-        
+
 def indexar_noticias(dir_noticias, indice_fichero):
-    dicDoc = {}
     docID = 0
     notID = 0
     #Lista de noticias que se encuentran en el directorio
@@ -38,7 +39,7 @@ def indexar_noticias(dir_noticias, indice_fichero):
         posNot = 0
         path = dir_noticias + '/' + documentos.pop(0)
         dicDoc[docID] = path
-       noticias = read_noticias(path)
+        noticias = read_noticias(path)
         #Recorremos todas las noticias eliminandolas de la lista
         for noticia in noticias:
             text = clean_text(noticia['article']).split()
@@ -51,15 +52,20 @@ def indexar_noticias(dir_noticias, indice_fichero):
             add_to_news_table(docID, posNot, notID)
             posNot += 1
             docID += 1
-                
-            
+
+def save_object(object, filename):
+    with open(filename, "wb") as fh:
+        pickle.dump(object, fh)
+
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         println('Formato: <SAR_indexer.py> <directorio_noticias> <índice_fichero>')
     else:
-      dir_noticias = sys.argv[1]
-      indice_fichero = sys.argv[2]
-      indexar_noticias(dir_noticias, indice_fichero)    
+        dir_noticias = sys.argv[1]
+        indice_fichero = sys.argv[2]
+        indexar_noticias(dir_noticias, indice_fichero)
+        objeto = (posting_list, news_table, dicDoc)
+        save_object(objeto, "diccionarios.txt")
 
 # mientras hay_documentos:
 #     doc ← leer_siguiente_documento()
