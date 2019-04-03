@@ -5,6 +5,10 @@ clean_re = re.compile('\W+')
 def clean_text(text):
     return clean_re.sub(' ', text).lower()
 
+def add_to_posting_list(termino, newsId):
+    #News id, identificador de noticia a la que pertence
+
+
 
 # mientras hay_documentos:
 #     doc ← leer_siguiente_documento()
