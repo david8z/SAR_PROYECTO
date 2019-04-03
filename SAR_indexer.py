@@ -1,13 +1,18 @@
 import re
 
 clean_re = re.compile('\W+')
+posting_list = dict()
 
 def clean_text(text):
     return clean_re.sub(' ', text).lower()
 
-def add_to_posting_list(termino, newsId):
+def add_to_posting_list(termino, newsId, pos):
     #News id, identificador de noticia a la que pertence
-
+    dictNoticias = posting_list.get(termino, dict())
+    listPosiciones = dictNoticias.get(newsId, list())
+    listPosiciones.append(pos)
+    dictNoticias[newsId] = listPosiciones
+    posting_list[termino] = dictNoticias
 
 
 # mientras hay_documentos:
