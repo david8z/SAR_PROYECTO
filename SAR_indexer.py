@@ -1,6 +1,5 @@
 import re
 
-
 clean_re = re.compile('[_\W]+')
 posting_list = dict()
 news_table = dict()
