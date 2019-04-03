@@ -2,6 +2,7 @@ import re
 
 clean_re = re.compile('\W+')
 posting_list = dict()
+news_table = dict()
 
 def clean_text(text):
     return clean_re.sub(' ', text).lower()
@@ -14,6 +15,8 @@ def add_to_posting_list(termino, newsId, pos):
     dictNoticias[newsId] = listPosiciones
     posting_list[termino] = dictNoticias
 
+def add_to_news_table(docId, pos, newsId):
+    news_table[newsId] = (docId, pos)
 
 # mientras hay_documentos:
 #     doc ← leer_siguiente_documento()
