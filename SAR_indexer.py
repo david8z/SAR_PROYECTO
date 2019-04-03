@@ -5,7 +5,7 @@ clean_re = re.compile('\W+')
 def clean_text(text):
     return clean_re.sub(' ', text).lower()
 
-
+p
 # mientras hay_documentos:
 #     doc ← leer_siguiente_documento()
 #     docid ← asignar_identificador_al_doc()
