@@ -3,18 +3,20 @@ import sys
 from os import scandir
 import json
 import pickle
+from operator import itemgetter
 
 
 clean_re = re.compile('[_\W]+')
 posting_list = dict()
 news_table = dict()
-dicDoc = {}
+dicDoc = dict()
 
 def clean_text(text):
     return clean_re.sub(' ', text).lower()
 
 def add_to_posting_list(termino, newsId, pos):
     #News id, identificador de noticia a la que pertence
+    #pos, posición del término en la noticia
     dictNoticias = posting_list.get(termino, dict())
     listPosiciones = dictNoticias.get(newsId, list())
     listPosiciones.append(pos)
@@ -41,7 +43,8 @@ def indexar_noticias(dir_noticias, indice_fichero):
         dicDoc[docID] = path
         noticias = read_noticias(path)
         #Recorremos todas las noticias eliminandolas de la lista
-        for noticia in noticias:
+        while len(noticias) > 0:
+            noticia = noticias.pop(0)
             text = clean_text(noticia['article']).split()
             notID = noticia['id']
             #Posicion del término en la noticia
@@ -53,6 +56,25 @@ def indexar_noticias(dir_noticias, indice_fichero):
             posNot += 1
             docID += 1
 
+def sorted_dict(diccionario, s):
+    res = dict()
+    if s == 0:
+        keys = diccionario.keys()
+        for key in keys:
+            value = diccionario.get(key)
+            for k in value.keys():
+                v = value.get(k)
+                v = sorted(v)
+                value[k] = v
+            res[key] = value    
+    else:
+        keys = diccionario.keys()
+        for key in keys:
+            value = diccionario.get(key)
+            ordenado = sorted(value[0], key = itemgetter(0), reverse = False)
+            res[key] = ordenado
+    return res   
+            
 def save_object(object, filename):
     with open(filename, "wb") as fh:
         pickle.dump(object, fh)
@@ -64,6 +86,8 @@ if __name__ == "__main__":
         dir_noticias = sys.argv[1]
         indice_fichero = sys.argv[2]
         indexar_noticias(dir_noticias, indice_fichero)
+        posting_list = sorted_dict(posting_list, 0)
+        news_table = sorted_dict(news_table, 1)
         objeto = (posting_list, news_table, dicDoc)
         save_object(objeto, "diccionarios.txt")
 
