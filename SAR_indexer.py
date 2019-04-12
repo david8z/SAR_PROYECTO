@@ -5,18 +5,28 @@ import json
 import pickle
 from operator import itemgetter
 
-
+#Matching con alphanumericos
 clean_re = re.compile('[_\W]+')
+#dict(termino) -> dict(newsId) -> list(pos_termino_en_noticia)
 posting_list = dict()
+#dict(newsId) -> tupla(docId, pos_en_doc)
 news_table = dict()
+#dict(docId) -> path_document
 dicDoc = dict()
 
 def clean_text(text):
+    """
+    Eliminamos alphanumericos y pasamos texto a minúsculas
+    """
     return clean_re.sub(' ', text).lower()
 
 def add_to_posting_list(termino, newsId, pos):
-    #News id, identificador de noticia a la que pertence
-    #pos, posición del término en la noticia
+    """
+    Añadimos nueva aparición de termino a la posting list
+    ---
+    newsId: identificador de noticia a la que pertence
+    pos: posición del término en la noticia
+    """
     dictNoticias = posting_list.get(termino, dict())
     listPosiciones = dictNoticias.get(newsId, list())
     listPosiciones.append(pos)
@@ -30,7 +40,7 @@ def read_noticias(text):
     with open(text) as json_file:
         return json.load(json_file)
 
-def indexar_noticias(dir_noticias, indice_fichero):
+def indexar_noticias(dir_noticias, ficheroPickle):
     docID = 0
     notID = 0
     #Lista de noticias que se encuentran en el directorio
@@ -56,40 +66,32 @@ def indexar_noticias(dir_noticias, indice_fichero):
             posNot += 1
             docID += 1
 
-def sorted_dict(diccionario, s):
+def sorted_dict(diccionario):
     res = dict()
-    if s == 0:
-        keys = diccionario.keys()
-        for key in keys:
-            value = diccionario.get(key)
-            for k in value.keys():
-                v = value.get(k)
-                v = sorted(v)
-                value[k] = v
-            res[key] = value    
-    else:
-        keys = diccionario.keys()
-        for key in keys:
-            value = diccionario.get(key)
-            ordenado = sorted(value[0], key = itemgetter(0), reverse = False)
-            res[key] = ordenado
-    return res   
-            
+    keys = diccionario.keys()
+    for key in keys:
+        value = diccionario.get(key)
+        for k in value.keys():
+            v = value.get(k)
+            v = sorted(v)
+            value[k] = v
+        res[key] = value
+    return res
+
 def save_object(object, filename):
     with open(filename, "wb") as fh:
         pickle.dump(object, fh)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        println('Formato: <SAR_indexer.py> <directorio_noticias> <índice_fichero>')
+        print('Formato: <SAR_indexer.py> <directorio_noticias> <índice_fichero>')
     else:
         dir_noticias = sys.argv[1]
-        indice_fichero = sys.argv[2]
-        indexar_noticias(dir_noticias, indice_fichero)
-        posting_list = sorted_dict(posting_list, 0)
-        news_table = sorted_dict(news_table, 1)
+        ficheroPickle = sys.argv[2]
+        indexar_noticias(dir_noticias, ficheroPickle)
+        posting_list = sorted_dict(posting_list)
         objeto = (posting_list, news_table, dicDoc)
-        save_object(objeto, "diccionarios.txt")
+        save_object(objeto, ficheroPickle)
 
 # mientras hay_documentos:
 #     doc ← leer_siguiente_documento()
