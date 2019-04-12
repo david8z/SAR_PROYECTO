@@ -1,5 +1,5 @@
 import re
-import sys, glob
+import sys, glob, os
 from os import scandir
 import json
 import pickle
@@ -69,7 +69,7 @@ def indexar_noticias(dir_noticias):
             posNot += 1
 
 def sorted_dict(posting_list):
-    for key in keys:
+    for key in posting_list.keys():
         #Transformamos el diccionario de newsId relacionado al termino  a list(tupla()) y lo ordenamos por newsId
         posting_list[key] = sorted(list( posting_list[key].items()))
     return posting_list
