@@ -1,10 +1,4 @@
-import re
-import sys
-import glob
-import os
-from os import scandir
-import json
-import pickle
+import re, sys, glob, os, json, pickle
 from operator import itemgetter
 
 # Matching con alphanumericos
