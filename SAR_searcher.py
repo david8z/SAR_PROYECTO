@@ -98,12 +98,17 @@ def sOr(a, b, posting_list, news_tables):
 # Obtener noticias (como objeto json) que estén en la lista de newsID
 def retrieveNews(newsID, news_tables):
     res = []
+    docs = {} # Set de documentos (garantiza unicidad)
     if len(newsID) >= 1:
-        with open(news_tables[newsID], "r") as fh:
+        with open(news_tables[newsID][0], "r") as fh:
             doc = json.load(fh)
             for article in doc:
                 if article["id"] in newsID:
                     res.append(article)
+                    docs.add(news_tables[newsID][0])
+        return (res, docs)
+
+
 
 # Imprimir un artículo: muestra cuerpo entero o extracto,
 # en caso de printLine=True lo imprime en una línea sin imprimir el cuerpo
@@ -119,13 +124,15 @@ def print_article(article, excerpt=False, keywords=[], printLine=False):
 
     # printLine solo es True cuando hay más de 5 resultados
     if excerpt and not printLine:
-        print("Fragmento: ".excerpt(article["article"], keywords))
+        print("Fragmento: " + excerpt(article["article"], keywords))
     elif not printLine:
-        print("Cuerpo de la noticia: ".article["article"])
+        print("Cuerpo de la noticia: " + article["article"])
 
-# Procesar los resultados según su tamaño. Pide lista de resultados
+# Procesar los resultados según su tamaño. Pide lista de resultados y docs
 # (obtenida de retrieveNews) y lista de palabras clave positivas.
 def print_results(results, keywords):
+    docs = results[1]
+    results = results[0]
     if len(results) < 3:
         for noticia in results:
             print_article(noticia)
@@ -135,6 +142,10 @@ def print_results(results, keywords):
     else:
         for noticia in results[:10]:
             print_article(noticia, True, keywords, True)
+
+    print("Se han encontrado " + len(results) + " resultados en los documentos:", end=" ")
+    for i in docs:
+        print(i, end=", ")
 
 # Cargar fichero pickle como objeto
 def load_object(filename):
