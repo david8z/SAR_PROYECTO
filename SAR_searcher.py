@@ -123,7 +123,8 @@ def print_article(article, excerpt=False, keywords=[], printLine=False):
     elif not printLine:
         print("Cuerpo de la noticia: ".article["article"])
 
-# Procesar los resultados según su tamaño
+# Procesar los resultados según su tamaño. Pide lista de resultados
+# (obtenida de retrieveNews) y lista de palabras clave positivas.
 def print_results(results, keywords):
     if len(results) < 3:
         for noticia in results:
@@ -132,7 +133,7 @@ def print_results(results, keywords):
         for noticia in results:
             print_article(noticia, True, keywords)
     else:
-        for noticia in results:
+        for noticia in results[:10]:
             print_article(noticia, True, keywords, True)
 
 # Cargar fichero pickle como objeto
