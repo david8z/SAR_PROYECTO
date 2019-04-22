@@ -15,17 +15,15 @@ def tokenize(query):
     return list(map(str.split, query))
 
 
-def search(query):
-    # Devuelve un término o una lista de listas que son newsID
-    if (len(query)==1):
+def search(query, posting_list, news_tables):
     """
     Función recursiva, vamos aplicando la operación necesaria (AND, OR) de izquierda a derecha
     y llamando otra vez a la fucnión search con el resultado de esta y el resto de la queryself.
 
-    Anotar que los elementos de la query pueden tener 3 formatos que se trabajaran en el metodo retrieve list:
+    Anotar que los elementos de la query pueden tener 3 formatos que se trabajarán en el método retrieve_list:
         1. Una lista de newsID
-        2. Una string (termino) además del símbolo "NOT"
-        3. Una string (termino)
+        2. Una string (término) además del símbolo "NOT"
+        3. Una string (término)
     """
     # Caso base solo queda el resultado
     if (len(query) == 1):
@@ -33,9 +31,9 @@ def search(query):
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == "AND"):
-        return search([sAnd(query[0], query[1])] + query[3:])
+        return search([sAnd(query[0], query[1])] + query[3:], posting_list, news_tables)
     else:
-        return search([sOr(query[0], query[1])] + query[3:])
+        return search([sOr(query[0], query[1])] + query[3:], posting_list, news_tables)
 
 
 def retrieveList(w, posting_list, news_tables):
@@ -55,12 +53,9 @@ def retrieveList(w, posting_list, news_tables):
         return [x for x, y in posting_list[w]]
 
 
-/  # TODO: modificar las llamadas a retrieveList, faltan parametros
-
-
-def sAnd(a, b):
-    a = retrieveList(a)
-    b = retrieveList(b)
+def sAnd(a, b, posting_list, news_tables):
+    a = retrieveList(a, posting_list, news_tables)
+    b = retrieveList(b, posting_list, news_tables)
     posA = 0
     posB = 0
     res = []
@@ -76,9 +71,9 @@ def sAnd(a, b):
     return res
 
 
-def sOr(a, b):
-    a = retrieveList(a)
-    b = retrieveList(b)
+def sOr(a, b, posting_list, news_tables):
+    a = retrieveList(a, posting_list, news_tables)
+    b = retrieveList(b, posting_list, news_tables)
     posA = 0
     posB = 0
     res = []
@@ -100,20 +95,47 @@ def sOr(a, b):
 
     return res
 
+# Obtener noticias (como objeto json) que estén en la lista de newsID
 def retrieveNews(newsID, news_tables):
     res = []
-    if len(newsID) > 1:
+    if len(newsID) >= 1:
         with open(news_tables[newsID], "r") as fh:
             doc = json.load(fh)
+            for article in doc:
+                if article["id"] in newsID:
+                    res.append(article)
 
-def print_article(article):
-    print("Fecha")
+# Imprimir un artículo: muestra cuerpo entero o extracto,
+# en caso de printLine=True lo imprime en una línea sin imprimir el cuerpo
+def print_article(article, excerpt=False, keywords=[], printLine=False):
+    if printLine:
+        endL = " " # Seguir en misma línea
+    else:
+        endL = "\n" # Imprimir en nueva línea
 
-def print_results(results):
+    print("Fecha: ".article["date"], end=endL)
+    print("Título: ".article["title"], end=endL)
+    print("Palabras clave: ".article["keywords"])
+
+    # printLine solo es True cuando hay más de 5 resultados
+    if excerpt and not printLine:
+        print("Fragmento: ".excerpt(article["article"], keywords))
+    elif not printLine:
+        print("Cuerpo de la noticia: ".article["article"])
+
+# Procesar los resultados según su tamaño
+def print_results(results, keywords):
     if len(results) < 3:
         for noticia in results:
             print_article(noticia)
+    elif len(results) < 5:
+        for noticia in results:
+            print_article(noticia, True, keywords)
+    else:
+        for noticia in results:
+            print_article(noticia, True, keywords, True)
 
+# Cargar fichero pickle como objeto
 def load_object(filename):
     with open(filename, "r") as fh:
         obj = pickle.load(fh)
