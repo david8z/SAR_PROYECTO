@@ -1,18 +1,15 @@
-import re
-import sys
-from os import scandir
-import json
-import pickle
+import re, sys, glob, os, json, pickle
 from operator import itemgetter
 
-#Matching con alphanumericos
+# Matching con alphanumericos
 clean_re = re.compile('[_\W]+')
-#dict(termino) -> dict(newsId) -> list(pos_termino_en_noticia)
+# dict(termino) -> dict(newsId) -> list(posTer)
 posting_list = dict()
-#dict(newsId) -> tupla(docId, pos_en_doc)
+# dict(newsId) -> tupla(docId, posNot)
 news_table = dict()
-#dict(docId) -> path_document
-dicDoc = dict()
+# dict(docId) -> path_document
+pathDoc = dict()
+
 
 def clean_text(text):
     """
@@ -20,7 +17,8 @@ def clean_text(text):
     """
     return clean_re.sub(' ', text).lower()
 
-def add_to_posting_list(termino, newsId, pos):
+
+def add_to_posting_list(termino, newsId, posTer):
     """
     Añadimos nueva aparición de termino a la posting list
     ---
@@ -29,58 +27,67 @@ def add_to_posting_list(termino, newsId, pos):
     """
     dictNoticias = posting_list.get(termino, dict())
     listPosiciones = dictNoticias.get(newsId, list())
-    listPosiciones.append(pos)
+    listPosiciones.append(posTer)
     dictNoticias[newsId] = listPosiciones
     posting_list[termino] = dictNoticias
 
-def add_to_news_table(docId, pos, newsId):
-    news_table[newsId] = (docId, pos)
 
-def read_noticias(text):
-    with open(text) as json_file:
+def add_to_news_table(docId, posNot, newsId):
+    """
+    Añadimos una nueva entrada al news table.
+    """
+    news_table[newsId] = (docId, posNot)
+
+
+def read_noticias(path):
+    with open(path) as json_file:
         return json.load(json_file)
 
-def indexar_noticias(dir_noticias, ficheroPickle):
-    docID = 0
-    notID = 0
-    #Lista de noticias que se encuentran en el directorio
-    documentos = [arch.name for arch in scandir(dir_noticias) if arch.is_file()]
-    #Recorremos todos los documentos eliminandolos de la lista
+
+def indexar_noticias(dir_noticias):
+    """
+    Recibimos el directorio donde se encuentran las noticias, para todos los terminos
+    de las noticias generamos la posting list y para todas las noticias la news table.
+    """
+    # Lista de noticias que se encuentran en el directorio
+    documentos = [filename for filename in glob.iglob(
+        os.getcwd() + "/" + dir_noticias + "/**/*.json", recursive=True)]
+    # Recorremos todos los documentos eliminandolos de la lista
     while len(documentos) > 0:
-        #Posicion de la noticia en el documento
+        # Posicion de la noticia en el documento
         posNot = 0
-        path = dir_noticias + '/' + documentos.pop(0)
-        dicDoc[docID] = path
+        path = documentos.pop(0)
+        docId = path
+        # pathDoc[docId] = path
+        # Noticias en formato list(dict())
         noticias = read_noticias(path)
-        #Recorremos todas las noticias eliminandolas de la lista
+        # Recorremos todas las noticias eliminandolas de la lista
         while len(noticias) > 0:
             noticia = noticias.pop(0)
+            # Limpiamos texto y separamos por palabras
             text = clean_text(noticia['article']).split()
-            notID = noticia['id']
-            #Posicion del término en la noticia
+            # El identificador es uno de los campos del json
+            newsId = noticia['id']
+            # Posicion del término en la noticia
             posTer = 0
             for termino in text:
-                add_to_posting_list(termino, notID, posTer)
+                add_to_posting_list(termino, newsId, posTer)
                 posTer += 1
-            add_to_news_table(docID, posNot, notID)
+            add_to_news_table(docId, posNot, newsId)
             posNot += 1
-            docID += 1
 
-def sorted_dict(diccionario):
-    res = dict()
-    keys = diccionario.keys()
-    for key in keys:
-        value = diccionario.get(key)
-        for k in value.keys():
-            v = value.get(k)
-            v = sorted(v)
-            value[k] = v
-        res[key] = value
-    return res
+
+def sorted_dict(posting_list):
+    for key in posting_list.keys():
+        # Transformamos el diccionario de newsId relacionado al termino  a list(tupla()) y lo ordenamos por newsId
+        posting_list[key] = sorted(list(posting_list[key].items()))
+    return posting_list
+
 
 def save_object(object, filename):
     with open(filename, "wb") as fh:
         pickle.dump(object, fh)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -88,17 +95,7 @@ if __name__ == "__main__":
     else:
         dir_noticias = sys.argv[1]
         ficheroPickle = sys.argv[2]
-        indexar_noticias(dir_noticias, ficheroPickle)
+        indexar_noticias(dir_noticias)
         posting_list = sorted_dict(posting_list)
-        objeto = (posting_list, news_table, dicDoc)
+        objeto = (posting_list, news_table)
         save_object(objeto, ficheroPickle)
-
-# mientras hay_documentos:
-#     doc ← leer_siguiente_documento()
-#     docid ← asignar_identificador_al_doc()
-#     mientras hay_noticias_en_doc:
-#         noticia ← extraer_siguiente_noticia()
-#         newid ← asignar_identificador_a_la_noticia()
-#         noticia_limpia ← procesar_noticia(noticia)
-#         para termino en noticia_limpia:
-#             añadir_noticia_al_postings_list_del_termino(termino, newid)
