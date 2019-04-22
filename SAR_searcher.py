@@ -1,9 +1,14 @@
 import re
+import sys
+import pickle
+import json
 def tokenize(query):
     query = re.split("(AND|OR)", query)
     return list(map(str.split, query))
 
+
 def search(query):
+    # Devuelve un término o una lista de listas que son newsID
     if (len(query)==1):
         return query[0]
     if (query[1] == "AND"):
@@ -12,6 +17,7 @@ def search(query):
         return search([sOr(query[0], query[1])]+query[3:])
 
 def retrieveList(w, posting_list, news_tables):
+    #Obtiene la lista de newsID en los que aparece un término
     if not isinstance(w, str):
         # w es una lista de newsID
         return w
@@ -64,3 +70,41 @@ def sOr(a, b):
             res.append(b[i][0])
 
     return res
+
+def retrieveNews(newsID, news_tables):
+    res = []
+    if len(newsID) > 1:
+        with open(news_tables[newsID], "r") as fh:
+            doc = json.load(fh)
+
+def print_article(article):
+    print("Fecha")
+
+def print_results(results):
+    if len(results) < 3:
+        for noticia in results:
+            print_article(noticia)
+
+def load_object(filename):
+    with open(filename, "r") as fh:
+        obj = pickle.load(fh)
+    return obj
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print('Formato: SAR_searcher.py <índice_fichero> [consulta]')
+        exit(0)
+    # Cargamos el objeto pickle
+    #  objeto = (posting_list, news_table, dicDoc)
+    oject = load_object(sys.argv[1])
+    posting_list = object[0]
+    news_tables = object[1]
+    pathDoc = object[2]
+
+    if len(sys.argv<3):
+        query = input("> Consulta: ")
+        while(query):
+            print_results(retrieveNews(search(query), news_tables))
+            query = input("> Consulta: ")
+    else:
+        print_results(retrieveNews(search(sys.argv(2)), news_tables))
