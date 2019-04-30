@@ -15,7 +15,7 @@ def tokenize(query):
     return list(map(str.split, query))
 
 
-def search(query, posting_list, news_tables):
+def search(query, posting_list, news_table):
     """
     Función recursiva, vamos aplicando la operación necesaria (AND, OR) de izquierda a derecha
     y llamando otra vez a la fucnión search con el resultado de esta y el resto de la queryself.
@@ -32,13 +32,13 @@ def search(query, posting_list, news_tables):
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == ["AND"]):
         print("AND")
-        return search([sAnd(query[0], query[1], posting_list, news_tables)] + query[3:], posting_list, news_tables)
+        return search([sAnd(query[0], query[1], posting_list, news_table)] + query[3:], posting_list, news_table)
     else:
         print("OR")
-        return search([sOr(query[0], query[1], posting_list, news_tables)] + query[3:], posting_list, news_tables)
+        return search([sOr(query[0], query[1], posting_list, news_table)] + query[3:], posting_list, news_table)
 
 
-def retrieveList(w, posting_list, news_tables):
+def retrieveList(w, posting_list, news_table):
     """
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo.
     """
@@ -47,17 +47,17 @@ def retrieveList(w, posting_list, news_tables):
         return w
     if "NOT" in w:
         # Devolver complemento de lista de newsID de w.split()[1]
-        # Quitamos de la lista de newsID en news_tables los newsID en los que aparezca w
+        # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
-        return [k for k in news_tables.keys() if k not in [x for x, y in posting_list[w.split()[1]]]]
+        return [k for k in news_table.keys() if k not in [x for x, y in posting_list[w.split()[1]]]]
     else:
         # Devuelve la lista de newsID
         return [x for x, y in posting_list[w]]
 
 
-def sAnd(a, b, posting_list, news_tables):
-    a = retrieveList(a, posting_list, news_tables)
-    b = retrieveList(b, posting_list, news_tables)
+def sAnd(a, b, posting_list, news_table):
+    a = retrieveList(a, posting_list, news_table)
+    b = retrieveList(b, posting_list, news_table)
     posA = 0
     posB = 0
     res = []
@@ -73,9 +73,9 @@ def sAnd(a, b, posting_list, news_tables):
     return res
 
 
-def sOr(a, b, posting_list, news_tables):
-    a = retrieveList(a, posting_list, news_tables)
-    b = retrieveList(b, posting_list, news_tables)
+def sOr(a, b, posting_list, news_table):
+    a = retrieveList(a, posting_list, news_table)
+    b = retrieveList(b, posting_list, news_table)
     posA = 0
     posB = 0
     res = []
@@ -98,16 +98,18 @@ def sOr(a, b, posting_list, news_tables):
     return res
 
 # Obtener noticias (como objeto json) que estén en la lista de newsID
-def retrieveNews(newsID, news_tables):
+def retrieveNews(newsID, news_table):
     res = []
     docs = {} # Set de documentos (garantiza unicidad)
     if len(newsID) >= 1:
-        with open(news_tables[newsID][0], "r") as fh:
+        print(news_table[newsID][0])
+        file =news_table[newsID][0]
+        with open(file, "r") as fh:
             doc = json.load(fh)
             for article in doc:
                 if article["id"] in newsID:
                     res.append(article)
-                    docs.add(news_tables[newsID][0])
+                    docs.add(news_table[newsID][0])
         return (res, docs)
 
 
@@ -163,13 +165,13 @@ if __name__ == "__main__":
     #  objeto = (posting_list, news_table, dicDoc)
     pickle_object = load_object(sys.argv[1])
     posting_list = pickle_object[0]
-    news_tables = pickle_object[1]
+    news_table = pickle_object[1]
     #pathDoc = pickle_object[2]
 
     if (len(sys.argv)<3):
         query = input("> Consulta: ")
         while(query):
-            print_results(retrieveNews(search(tokenize(query), posting_list, news_tables), news_tables))
+            print_results(retrieveNews(search(tokenize(query), posting_list, news_table), news_table))
             query = input("> Consulta: ")
     else:
-        print_results(retrieveNews(search(sys.argv(2)), news_tables))
+        print_results(retrieveNews(search(sys.argv(2)), news_table))
