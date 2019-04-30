@@ -35,9 +35,10 @@ def search(query, posting_list, news_table):
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == ["AND"]):
-        return search([sAnd(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
-    else:
+        return search(sAnd(query[0][0].lower(), query[2][0].lower(), posting_list, news_table) + query[3:], posting_list, news_table)
+    elif (query[1] == ["OR"]):
         return search([sOr(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
+    return query
 
 
 def retrieveList(w, posting_list, news_table):
@@ -57,6 +58,8 @@ def retrieveList(w, posting_list, news_table):
         return [x for x, y in posting_list[w]]
 
 
+
+# OPERACIONES LÓGICAS: Devuelven lista de newsID
 def sAnd(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
@@ -72,7 +75,6 @@ def sAnd(a, b, posting_list, news_table):
             posA += 1
         elif (a[posA] > b[posB]):
             posB += 1
-    print("AND "+str(res))
     return res
 
 
@@ -97,23 +99,20 @@ def sOr(a, b, posting_list, news_table):
             res.append(a[i][0])
         for i in range(posB, len(b)):
             res.append(b[i][0])
-    print("OR "+str(res))
     return res
 
 # Obtener noticias (como objeto json) que estén en la lista de newsID
 def retrieveNews(newsList, news_table):
     res = []
-    docs = {} # Set de documentos (garantiza unicidad)
-    print(str(newsList))
+    docs = set() # Set de documentos (garantiza unicidad)
     if len(newsList) >= 1:
         for newsID in newsList:
-            print("newsID " + str(newsID))
             with open(news_table[newsID][0], "r") as fh:
                 doc = json.load(fh)
                 for article in doc:
-                    if article["id"] is newsID:
+                    if article["id"] == newsID:
                         res.append(article)
-                        docs.add(news_table[article][0])
+                        docs.add(news_table[article["id"]][0])
         return (res, docs)
 
 
@@ -126,9 +125,9 @@ def print_article(article, excerpt=False, keywords=[], printLine=False):
     else:
         endL = "\n" # Imprimir en nueva línea
 
-    print("Fecha: ".article["date"], end=endL)
-    print("Título: ".article["title"], end=endL)
-    print("Palabras clave: ".article["keywords"])
+    print("Fecha: " + article["date"], end=endL)
+    print("Título: " + article["title"], end=endL)
+    print("Palabras clave: " + article["keywords"])
 
     # printLine solo es True cuando hay más de 5 resultados
     if excerpt and not printLine:
@@ -151,9 +150,10 @@ def print_results(results, keywords):
         for noticia in results[:10]:
             print_article(noticia, True, keywords, True)
 
-    print("Se han encontrado " + len(results) + " resultados en los documentos:", end=" ")
+    print("Se han encontrado " + str(len(results)) + " resultados en los documentos:", end=" ")
     for i in docs:
         print(i, end=", ")
+    print()
 
 # Cargar fichero pickle como objeto
 def load_object(filename):
@@ -176,9 +176,9 @@ if __name__ == "__main__":
         query = input("> Consulta: ")
         while(query):
             #print(posting_list["repsol"])
-            search_results = search(tokenize("buque AND Repsol"), posting_list, news_table) # Debería recuperar primera noticia 2015-01-02
-            #print("Resultados: "+str(search_results))
-            #print_results(retrieveNews(search_results, news_table))
+            search_results = search(tokenize(query), posting_list, news_table) # Debería recuperar primera noticia 2015-01-02
+            #print("Resultados: "+str(retrieveNews(search_results, news_table)))
+            print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")
     else:
         print_results(retrieveNews(search(sys.argv(2)), news_table))
