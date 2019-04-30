@@ -10,6 +10,8 @@ def tokenize(query):
     estos símbolos los matiene en la lista com otro elemento
     ---
     tokenike("a AND b") -> ["a ", "AND", " b"]
+
+    OJO: Este método no hace ningún tipo de limpieza sobre los tokens
     """
     query = re.split("(AND|OR)", query)
     return list(map(str.split, query))
@@ -24,6 +26,8 @@ def search(query, posting_list, news_table):
         1. Una lista de newsID
         2. Una string (término) además del símbolo "NOT"
         3. Una string (término)
+
+    OJO: Aquí se convierten las palabras a minúsculas
     """
     # Caso base solo queda el resultado
     if (len(query) == 1):
@@ -31,11 +35,9 @@ def search(query, posting_list, news_table):
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == ["AND"]):
-        print("AND")
-        return search([sAnd(query[0], query[1], posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search([sAnd(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
     else:
-        print("OR")
-        return search([sOr(query[0], query[1], posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search([sOr(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
 
 
 def retrieveList(w, posting_list, news_table):
@@ -70,6 +72,7 @@ def sAnd(a, b, posting_list, news_table):
             posA += 1
         elif (a[posA] > b[posB]):
             posB += 1
+    print("AND "+str(res))
     return res
 
 
@@ -94,22 +97,23 @@ def sOr(a, b, posting_list, news_table):
             res.append(a[i][0])
         for i in range(posB, len(b)):
             res.append(b[i][0])
-
+    print("OR "+str(res))
     return res
 
 # Obtener noticias (como objeto json) que estén en la lista de newsID
-def retrieveNews(newsID, news_table):
+def retrieveNews(newsList, news_table):
     res = []
     docs = {} # Set de documentos (garantiza unicidad)
-    if len(newsID) >= 1:
-        print(news_table[newsID][0])
-        file =news_table[newsID][0]
-        with open(file, "r") as fh:
-            doc = json.load(fh)
-            for article in doc:
-                if article["id"] in newsID:
-                    res.append(article)
-                    docs.add(news_table[newsID][0])
+    print(str(newsList))
+    if len(newsList) >= 1:
+        for newsID in newsList:
+            print("newsID " + str(newsID))
+            with open(news_table[newsID][0], "r") as fh:
+                doc = json.load(fh)
+                for article in doc:
+                    if article["id"] is newsID:
+                        res.append(article)
+                        docs.add(news_table[article][0])
         return (res, docs)
 
 
@@ -171,7 +175,10 @@ if __name__ == "__main__":
     if (len(sys.argv)<3):
         query = input("> Consulta: ")
         while(query):
-            print_results(retrieveNews(search(tokenize(query), posting_list, news_table), news_table))
+            #print(posting_list["repsol"])
+            search_results = search(tokenize("buque AND Repsol"), posting_list, news_table) # Debería recuperar primera noticia 2015-01-02
+            #print("Resultados: "+str(search_results))
+            #print_results(retrieveNews(search_results, news_table))
             query = input("> Consulta: ")
     else:
         print_results(retrieveNews(search(sys.argv(2)), news_table))

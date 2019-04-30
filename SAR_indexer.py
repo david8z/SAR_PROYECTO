@@ -13,14 +13,14 @@ pathDoc = dict()
 
 def clean_text(text):
     """
-    Eliminamos alphanumericos y pasamos texto a minúsculas
+    Eliminamos alfanuméricos y pasamos texto a minúsculas
     """
     return clean_re.sub(' ', text).lower()
 
 
 def add_to_posting_list(termino, newsId, posTer):
     """
-    Añadimos nueva aparición de termino a la posting list
+    Añadimos nueva aparición de término a la posting list
     ---
     newsId: identificador de noticia a la que pertence
     pos: posición del término en la noticia
@@ -46,7 +46,7 @@ def read_noticias(path):
 
 def indexar_noticias(dir_noticias):
     """
-    Recibimos el directorio donde se encuentran las noticias, para todos los terminos
+    Recibimos el directorio donde se encuentran las noticias, para todos los términos
     de las noticias generamos la posting list y para todas las noticias la news table.
     """
     # Lista de noticias que se encuentran en el directorio
