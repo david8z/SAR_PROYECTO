@@ -27,13 +27,15 @@ def search(query, posting_list, news_tables):
     """
     # Caso base solo queda el resultado
     if (len(query) == 1):
-        return query[0]
+        return query
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
-    if (query[1] == "AND"):
-        return search([sAnd(query[0], query[1])] + query[3:], posting_list, news_tables)
+    if (query[1] == ["AND"]):
+        print("AND")
+        return search([sAnd(query[0], query[1], posting_list, news_tables)] + query[3:], posting_list, news_tables)
     else:
-        return search([sOr(query[0], query[1])] + query[3:], posting_list, news_tables)
+        print("OR")
+        return search([sOr(query[0], query[1], posting_list, news_tables)] + query[3:], posting_list, news_tables)
 
 
 def retrieveList(w, posting_list, news_tables):
@@ -149,7 +151,7 @@ def print_results(results, keywords):
 
 # Cargar fichero pickle como objeto
 def load_object(filename):
-    with open(filename, "r") as fh:
+    with open(filename, "rb") as fh:
         obj = pickle.load(fh)
     return obj
 
@@ -159,15 +161,15 @@ if __name__ == "__main__":
         exit(0)
     # Cargamos el objeto pickle
     #  objeto = (posting_list, news_table, dicDoc)
-    oject = load_object(sys.argv[1])
-    posting_list = object[0]
-    news_tables = object[1]
-    pathDoc = object[2]
+    pickle_object = load_object(sys.argv[1])
+    posting_list = pickle_object[0]
+    news_tables = pickle_object[1]
+    #pathDoc = pickle_object[2]
 
-    if len(sys.argv<3):
+    if (len(sys.argv)<3):
         query = input("> Consulta: ")
         while(query):
-            print_results(retrieveNews(search(query), news_tables))
+            print_results(retrieveNews(search(tokenize(query), posting_list, news_tables), news_tables))
             query = input("> Consulta: ")
     else:
         print_results(retrieveNews(search(sys.argv(2)), news_tables))
