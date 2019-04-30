@@ -176,7 +176,7 @@ if __name__ == "__main__":
         query = input("> Consulta: ")
         while(query):
             #print(posting_list["repsol"])
-            search_results = search(tokenize(query), posting_list, news_table) # Debería recuperar primera noticia 2015-01-02
+            search_results = search(tokenize(query), posting_list, news_table)
             #print("Resultados: "+str(retrieveNews(search_results, news_table)))
             print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")
