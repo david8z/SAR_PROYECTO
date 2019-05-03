@@ -29,6 +29,7 @@ def search(query, posting_list, news_table):
 
     OJO: Aquí se convierten las palabras a minúsculas
     """
+    #print(query,len(query))
     # La query no se satisface
     if (len(query) == 0):
         pass
@@ -110,15 +111,11 @@ def retrieveNews(newsList, news_table):
     res = []
     docs = set() # Set de documentos (garantiza unicidad)
     if len(newsList) >= 1:
-<<<<<<< HEAD
-        for newsID in newsList[0]:
-            with open(news_table[newsID][0], "r") as fh:
-=======
         for newsID in newsList:
-            print(newsID[0])
-            print(news_table)
+        #for newsID in newsIDList:
+            print(newsID)
+            #print(news_table)
             with open(news_table[newsID[0]][0], "r") as fh:
->>>>>>> 23de08b5afb5bba2a1486d7edf53f7914773b03e
                 doc = json.load(fh)
                 for article in doc:
                     if article["id"] == newsID:
@@ -188,7 +185,7 @@ if __name__ == "__main__":
         while(query):
             #print(posting_list["repsol"])
             search_results = search(tokenize(query), posting_list, news_table)
-            #print(search_results)
+            print(search_results)
             #print("Resultados: "+str(retrieveNews(search_results, news_table)))
             print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")
