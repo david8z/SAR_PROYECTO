@@ -13,7 +13,8 @@ def tokenize(query):
 
     OJO: Este método no hace ningún tipo de limpieza sobre los tokens
     """
-    return re.split("(AND|OR)", query)
+
+    return [x.strip() for x in re.split("(AND|OR)", query)]
 
 
 def search(query, posting_list, news_table):
@@ -34,17 +35,16 @@ def search(query, posting_list, news_table):
         return []
     # Caso base solo queda el resultado
     if (len(query) == 1):
-
         # La query ha sido solo una palabra
-        if query[0][0] not in news_table.keys():
-            return retrieveList(query[0][0], posting_list, news_table)
+        if query[0] not in news_table.keys():
+            return retrieveList(query[0], posting_list, news_table)
         return query[0]
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == ["AND"]):
-        return search([sAnd(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search([sAnd(query[0].lower(), query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
     elif (query[1] == ["OR"]):
-        return search([sOr(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search([sOr(query[0].lower(), query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
     return query
 
 
