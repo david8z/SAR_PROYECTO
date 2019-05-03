@@ -29,19 +29,24 @@ def search(query, posting_list, news_table):
 
     OJO: Aquí se convierten las palabras a minúsculas
     """
+    print(query,len(query))
+    # La query no se satisface
+    if (len(query) == 0):
+        pass
     # Caso base solo queda el resultado
     if (len(query) == 1):
         return query
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == ["AND"]):
-        return search(sAnd(query[0][0].lower(), query[2][0].lower(), posting_list, news_table) + query[3:], posting_list, news_table)
+        return search([sAnd(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
     elif (query[1] == ["OR"]):
         return search([sOr(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
     return query
 
 
 def retrieveList(w, posting_list, news_table):
+    ## TODO: si la palabra no está debe devolver lista vacía
     """
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo.
     """
@@ -107,6 +112,8 @@ def retrieveNews(newsList, news_table):
     docs = set() # Set de documentos (garantiza unicidad)
     if len(newsList) >= 1:
         for newsID in newsList:
+            print(newsID)
+            print(news_table)
             with open(news_table[newsID][0], "r") as fh:
                 doc = json.load(fh)
                 for article in doc:
@@ -177,6 +184,7 @@ if __name__ == "__main__":
         while(query):
             #print(posting_list["repsol"])
             search_results = search(tokenize(query), posting_list, news_table)
+            print(search_results)
             #print("Resultados: "+str(retrieveNews(search_results, news_table)))
             print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")

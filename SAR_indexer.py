@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 import re, sys, glob, os, json, pickle
 from operator import itemgetter
+
 
 # Matching con alphanumericos
 clean_re = re.compile('[_\W]+')
