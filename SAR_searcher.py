@@ -29,11 +29,13 @@ def search(query, posting_list, news_table):
 
     OJO: Aquí se convierten las palabras a minúsculas
     """
+    print(query)
     # La query no se satisface
     if (len(query) == 0):
         return []
     # Caso base solo queda el resultado
     if (len(query) == 1):
+
         # La query ha sido solo una palabra
         if query[0][0] not in news_table.keys():
             return retrieveList(query[0][0], posting_list, news_table)
@@ -49,7 +51,7 @@ def search(query, posting_list, news_table):
 
 def retrieveList(w, posting_list, news_table):
     """
-    Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo.
+    Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo. EL formato es list(newsID)
     """
     print(w)
     if w in news_table.keys():
@@ -193,9 +195,9 @@ if __name__ == "__main__":
     if (len(sys.argv)<3):
         query = input("> Consulta: ")
         while(query):
-            # Nos devuelve la lista de noticias que cumplen la query list(newsID)
+            # Nos devuelve la lista de noticias que cumplen la query, list(newsID)
             search_results = search(tokenize(query), posting_list, news_table)
-            #print("Resultados: "+str(retrieveNews(search_results, news_table)))
+
             print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")
     else:
