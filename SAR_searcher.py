@@ -29,6 +29,7 @@ def search(query, posting_list, news_table):
 
     OJO: Aquí se convierten las palabras a minúsculas
     """
+    #print(query,len(query))
     # La query no se satisface
     if (len(query) == 0):
         pass
@@ -99,10 +100,10 @@ def sOr(a, b, posting_list, news_table):
         elif (b[posB] < a[posA]):
             res.append(b[posB])
             posB += 1
-        for i in range(posA, len(a)):
-            res.append(a[i])
-        for i in range(posB, len(b)):
-            res.append(b[i])
+    for i in range(posA, len(a)):
+        res.append(a[i])
+    for i in range(posB, len(b)):
+        res.append(b[i])
     return res
 
 # Obtener noticias (como objeto json) que estén en la lista de newsID
@@ -182,7 +183,7 @@ if __name__ == "__main__":
         while(query):
             #print(posting_list["repsol"])
             search_results = search(tokenize(query), posting_list, news_table)
-            #print(search_results)
+            print(search_results)
             #print("Resultados: "+str(retrieveNews(search_results, news_table)))
             print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")
