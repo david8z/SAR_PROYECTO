@@ -2,7 +2,7 @@ import re
 import sys
 import pickle
 import json
-
+import os
 
 def tokenize(query):
     """
@@ -14,7 +14,7 @@ def tokenize(query):
     OJO: Este método no hace ningún tipo de limpieza sobre los tokens
     """
 
-    return [x.strip() for x in re.split("(AND|OR)", query)]
+    return [x.strip().lower() for x in re.split("(AND|OR)", query)]
 
 
 def search(query, posting_list, news_table):
@@ -36,15 +36,15 @@ def search(query, posting_list, news_table):
     # Caso base solo queda el resultado
     if (len(query) == 1):
         # La query ha sido solo una palabra
-        if query[0] not in news_table.keys():
+        if query[0] is not list():
             return retrieveList(query[0], posting_list, news_table)
         return query[0]
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
-    if (query[1] == ["AND"]):
-        return search([sAnd(query[0].lower(), query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
-    elif (query[1] == ["OR"]):
-        return search([sOr(query[0].lower(), query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
+    if (query[1] == "and"):
+        return search([sAnd(query[0], query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
+    elif (query[1] == "or"):
+        return search([sOr(query[0], query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
     return query
 
 
@@ -53,20 +53,17 @@ def retrieveList(w, posting_list, news_table):
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo. EL formato es list(newsID)
     """
     print(w)
-    if w in news_table.keys():
+    if w is list():
         # w es una lista de newsID
         return w
     if "NOT" in w:
         # Devolver complemento de lista de newsID de w.split()[1]
         # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
-        return [k for k in news_table.keys() if k not in [x for x, y in posting_list[w.split()[1]]]]
-    elif w in posting_list.keys():
-        # Devuelve la lista de newsID
-        return [x for x, y in posting_list[w]]
+        return [k for k in news_table.keys() if k not in [x for x, y in posting_list.get(w.split()[1], [])]]
     else:
-        # La palabra no está en el diccionario
-        return []
+        # Devuelve la lista de newsID. Si no existe el término, devuelve lista vacía.
+        return [x for x, y in posting_list.get(w, [])]
 
 
 
@@ -172,7 +169,7 @@ def print_results(results, keywords):
 
     print("Se han encontrado " + str(len(results)) + " resultados en los documentos:", end=" ")
     for i in docs:
-        print(i, end=", ")
+        print(os.path.basename(i), end=", ")
     print()
 
 # Cargar fichero pickle como objeto
@@ -196,7 +193,7 @@ if __name__ == "__main__":
         while(query):
             # Nos devuelve la lista de noticias que cumplen la query, list(newsID)
             search_results = search(tokenize(query), posting_list, news_table)
-
+            print(search_results)
             print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")
     else:
