@@ -110,8 +110,15 @@ def retrieveNews(newsList, news_table):
     res = []
     docs = set() # Set de documentos (garantiza unicidad)
     if len(newsList) >= 1:
+<<<<<<< HEAD
         for newsID in newsList[0]:
             with open(news_table[newsID][0], "r") as fh:
+=======
+        for newsID in newsList:
+            print(newsID[0])
+            print(news_table)
+            with open(news_table[newsID[0]][0], "r") as fh:
+>>>>>>> 23de08b5afb5bba2a1486d7edf53f7914773b03e
                 doc = json.load(fh)
                 for article in doc:
                     if article["id"] == newsID:
