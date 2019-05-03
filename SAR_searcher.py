@@ -37,7 +37,7 @@ def search(query, posting_list, news_table):
     if (query[1] == ["AND"]):
         return search(sAnd(query[0][0].lower(), query[2][0].lower(), posting_list, news_table) + query[3:], posting_list, news_table)
     elif (query[1] == ["OR"]):
-        return search([sOr(query[0][0].lower(), query[2][0].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search(sOr(query[0][0].lower(), query[2][0].lower(), posting_list, news_table) + query[3:], posting_list, news_table)
     return query
 
 
