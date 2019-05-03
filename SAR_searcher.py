@@ -29,13 +29,15 @@ def search(query, posting_list, news_table):
 
     OJO: Aquí se convierten las palabras a minúsculas
     """
-    #print(query,len(query))
     # La query no se satisface
     if (len(query) == 0):
-        pass
+        return []
     # Caso base solo queda el resultado
     if (len(query) == 1):
-        return query
+        # La query ha sido solo una palabra
+        if query[0][0] not in news_table.keys():
+            return retrieveList(query[0][0], posting_list, news_table)
+        return query[0]
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == ["AND"]):
@@ -46,11 +48,11 @@ def search(query, posting_list, news_table):
 
 
 def retrieveList(w, posting_list, news_table):
-    ## TODO: si la palabra no está debe devolver lista vacía
     """
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo.
     """
-    if not isinstance(w, str):
+    print(w)
+    if w in news_table.keys():
         # w es una lista de newsID
         return w
     if "NOT" in w:
@@ -58,9 +60,12 @@ def retrieveList(w, posting_list, news_table):
         # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
         return [k for k in news_table.keys() if k not in [x for x, y in posting_list[w.split()[1]]]]
-    else:
+    elif w in posting_list.keys():
         # Devuelve la lista de newsID
         return [x for x, y in posting_list[w]]
+    else:
+        # La palabra no está en el diccionario
+        return []
 
 
 
@@ -108,17 +113,25 @@ def sOr(a, b, posting_list, news_table):
 
 # Obtener noticias (como objeto json) que estén en la lista de newsID
 def retrieveNews(newsList, news_table):
+    """
+    Se devuelve el contenido de las noticias que están en newsList.
+    ---
+    newsList: Lista de newsID que han hecho matching con la query
+    news_table: dict(newsID)->list(tuple(docID, posDoc))
+    """
     res = []
     docs = set() # Set de documentos (garantiza unicidad)
+    # Necesario en caso de que no haya ninguna noticia que haga matching con la query
     if len(newsList) >= 1:
-        for newsID in newsList[0]:
+        for newsID in newsList:
             with open(news_table[newsID][0], "r") as fh:
                 doc = json.load(fh)
+                # Porque no utilizamos news_table[newID][1] que es la posición de la noticia en el doc
                 for article in doc:
                     if article["id"] == newsID:
                         res.append(article)
                         docs.add(news_table[article["id"]][0])
-        return (res, docs)
+    return (res, docs)
 
 
 
@@ -172,18 +185,16 @@ if __name__ == "__main__":
         print('Formato: SAR_searcher.py <índice_fichero> [consulta]')
         exit(0)
     # Cargamos el objeto pickle
-    #  objeto = (posting_list, news_table, dicDoc)
+    #  objeto = (posting_list, news_table)
     pickle_object = load_object(sys.argv[1])
     posting_list = pickle_object[0]
     news_table = pickle_object[1]
-    #pathDoc = pickle_object[2]
 
     if (len(sys.argv)<3):
         query = input("> Consulta: ")
         while(query):
-            #print(posting_list["repsol"])
+            # Nos devuelve la lista de noticias que cumplen la query list(newsID)
             search_results = search(tokenize(query), posting_list, news_table)
-            print(search_results)
             #print("Resultados: "+str(retrieveNews(search_results, news_table)))
             print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")
