@@ -36,7 +36,7 @@ def search(query, posting_list, news_table):
     # Caso base solo queda el resultado
     if (len(query) == 1):
         # La query ha sido solo una palabra
-        if query[0] is not list():
+        if type(query[0]) is not list:
             return retrieveList(query[0], posting_list, news_table)
         return query[0]
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
@@ -53,14 +53,14 @@ def retrieveList(w, posting_list, news_table):
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo. EL formato es list(newsID)
     """
     print(w)
-    if w is list():
+    if type(w) == list:
         # w es una lista de newsID
         return w
-    if "NOT" in w:
+    if "not" in w:
         # Devolver complemento de lista de newsID de w.split()[1]
         # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
-        return [k for k in news_table.keys() if k not in [x for x, y in posting_list.get(w.split()[1], [])]]
+        return sorted([k for k in news_table.keys() if k not in [x for x, y in posting_list.get(w.split()[1], [])]])
     else:
         # Devuelve la lista de newsID. Si no existe el término, devuelve lista vacía.
         return [x for x, y in posting_list.get(w, [])]
@@ -71,6 +71,8 @@ def retrieveList(w, posting_list, news_table):
 def sAnd(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
+    print(len(a))
+    print(len(b))
     posA = 0
     posB = 0
     res = []
@@ -89,11 +91,13 @@ def sAnd(a, b, posting_list, news_table):
 def sOr(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
+    print(len(a))
+    print(len(b))
     posA = 0
     posB = 0
     res = []
     while(posA < len(a) and posB < len(b)):
-        if (a[posA][0] == b[posB][0]):
+        if (a[posA] == b[posB]):
             res.append(a[posA])
             posA += 1
             posB += 1
