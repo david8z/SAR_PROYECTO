@@ -100,10 +100,10 @@ def sOr(a, b, posting_list, news_table):
         elif (b[posB] < a[posA]):
             res.append(b[posB])
             posB += 1
-        for i in range(posA, len(a)):
-            res.append(a[i])
-        for i in range(posB, len(b)):
-            res.append(b[i])
+    for i in range(posA, len(a)):
+        res.append(a[i])
+    for i in range(posB, len(b)):
+        res.append(b[i])
     return res
 
 # Obtener noticias (como objeto json) que estén en la lista de newsID
