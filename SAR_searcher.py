@@ -47,9 +47,29 @@ def search_with_parenthesis(query, posting_list, news_table):
 
             if (query[pointer+2] == "and"):
                 auxValue = sAnd(query[pointer+1], query[pointer+3], posting_list, news_table)
+                # Check if the element previous to pointer is a not
+                try:
+                    if query[pointer-1] == "not":
+                        auxValue = sorted([k for k in news_table.keys() if k not in auxValue])
+                        # Delete not from query
+                        query.pop(pointer-1)
+                        # Update pos of '('
+                        pointer= pointer - 1
+                except:
+                    pass
                 return search_with_parenthesis(query[:pointer] + [ auxValue ]  + query[pointer+4:],posting_list, news_table)
             elif (query[pointer+2] == "or"):
                 auxValue = sOr(query[pointer+1], query[pointer+3], posting_list, news_table)
+                # Check if the element previous to pointer is a not
+                try:
+                    if query[pointer-1] == "not":
+                        auxValue = sorted([k for k in news_table.keys() if k not in auxValue])
+                        # Delete not from query
+                        query.pop(pointer-1)
+                        # Update pos of '('
+                        pointer= pointer - 1
+                except:
+                    pass
                 return search_with_parenthesis(query[:pointer] + [ auxValue ]  + query[pointer+4:],posting_list, news_table)
     return query
 
