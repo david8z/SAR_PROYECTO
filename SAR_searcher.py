@@ -13,6 +13,7 @@ def tokenize(query):
 
     OJO: Este método no hace ningún tipo de limpieza sobre los tokens
     """
+    print("1,",query)
     aux = [x.strip().lower() for x in re.split("(AND|OR|[(]|[)])", query)]
     return [i for i in aux if i]
 
@@ -251,6 +252,5 @@ if __name__ == "__main__":
             query = input("> Consulta: ")
     else:
         query =sys.argv[2:]
-        print(query)
-        search_results = search_with_parenthesis(tokenize(query[0]), posting_list, news_table)
+        search_results = search_with_parenthesis(tokenize(" ".join(query)), posting_list, news_table)
         print_results(retrieveNews(search_results, news_table))
