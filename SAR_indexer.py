@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import re, sys, glob, os, json, pickle
 from operator import itemgetter
-from nltk.stem.porter import *
+from nltk.stem import SnowballStemmer
+
 
 
 # Matching con alphanumericos
@@ -15,7 +16,7 @@ news_table = dict()
 # dict(docId) -> path_document
 pathDoc = dict()
 
-stemmer = PorterStemmer()
+stemmer = SnowballStemmer('spanish')
 
 def clean_text(text):
     """
