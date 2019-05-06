@@ -13,45 +13,9 @@ def tokenize(query):
 
     OJO: Este método no hace ningún tipo de limpieza sobre los tokens
     """
-    aux = [x.strip().lower() for x in re.split("(AND|OR|[(]|[)])", query)]
-    return [i for i in aux if i]
 
-def search_with_parenthesis(query, posting_list, news_table):
-    print(query)
-    # La query no se satisface
-    if (len(query) == 0):
-        return []
-    # Caso base solo queda el resultado
-    if (len(query) == 1):
-        # La query ha sido solo una palabra
-        if type(query[0]) is not list:
-            return retrieveList(query[0], posting_list, news_table)
-        return query[0]
+    return [x.strip().lower() for x in re.split("(AND|OR)", query)]
 
-    # No quedan paréntesis
-    if "(" not in query:
-        return search(query, posting_list, news_table)
-
-    # Apuntará al último "(" visto
-    pointer = 0
-    for i in range(len(query)):
-        if query[pointer] != '(':
-            pointer+=1
-        # Para actualizar el puntero en caso de parentesis anidados
-        elif (query[i] == '(') and (i != pointer):
-            pointer = i
-        elif query[i] == ')':
-            print(pointer, i, query)
-            # We pop ) from the query
-            query.pop(i)
-
-            if (query[pointer+2] == "and"):
-                auxValue = sAnd(query[pointer+1], query[pointer+3], posting_list, news_table)
-                return search_with_parenthesis(query[:pointer] + [ auxValue ]  + query[pointer+4:],posting_list, news_table)
-            elif (query[pointer+2] == "or"):
-                auxValue = sOr(query[pointer+1], query[pointer+3], posting_list, news_table)
-                return search_with_parenthesis(query[:pointer] + [ auxValue ]  + query[pointer+4:],posting_list, news_table)
-    return query
 
 def search(query, posting_list, news_table):
     """
@@ -65,6 +29,7 @@ def search(query, posting_list, news_table):
 
     OJO: Aquí se convierten las palabras a minúsculas
     """
+    print(query)
     # La query no se satisface
     if (len(query) == 0):
         return []
@@ -77,9 +42,9 @@ def search(query, posting_list, news_table):
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == "and"):
-        return search([sAnd(query[0], query[2], posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search([sAnd(query[0], query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
     elif (query[1] == "or"):
-        return search([sOr(query[0], query[2], posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search([sOr(query[0], query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
     return query
 
 
@@ -87,14 +52,14 @@ def retrieveList(w, posting_list, news_table):
     """
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo. EL formato es list(newsID)
     """
+    print(w)
     if type(w) == list:
         # w es una lista de newsID
         return w
-    if "not" in w.split():
+    if "not" in w:
         # Devolver complemento de lista de newsID de w.split()[1]
         # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
-        # Hay que aplicar sorted ya que al seleccionar los elementos de news_table.keys estos están desordenados.
         return sorted([k for k in news_table.keys() if k not in [x for x, y in posting_list.get(w.split()[1], [])]])
     else:
         # Devuelve la lista de newsID. Si no existe el término, devuelve lista vacía.
@@ -106,6 +71,8 @@ def retrieveList(w, posting_list, news_table):
 def sAnd(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
+    print(len(a))
+    print(len(b))
     posA = 0
     posB = 0
     res = []
@@ -124,6 +91,8 @@ def sAnd(a, b, posting_list, news_table):
 def sOr(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
+    print(len(a))
+    print(len(b))
     posA = 0
     posB = 0
     res = []
@@ -170,7 +139,7 @@ def retrieveNews(newsList, news_table):
 
 # Imprimir un artículo: muestra cuerpo entero o extracto,
 # en caso de printLine=True lo imprime en una línea sin imprimir el cuerpo
-def print_article(article, snippet=False, printLine=False):
+def print_article(article, excerpt=False, keywords=[], printLine=False):
     if printLine:
         endL = " " # Seguir en misma línea
     else:
@@ -180,32 +149,32 @@ def print_article(article, snippet=False, printLine=False):
     print("Título: " + article["title"], end=endL)
     print("Palabras clave: " + article["keywords"])
 
-    # Snippet solo es true cuando hay entre 3 y 5 noticias
-    if snippet:
-        print("Fragmento: ")# + snippet(article["article"], keywords))
-    # PrinLine solo True cuando hay más de 5 noticias
-    elif not printLine and not Snippet:
+    # printLine solo es True cuando hay más de 5 resultados
+    if excerpt and not printLine:
+        print("Cuerpo de la noticia: " + article["article"])
+        #print("Fragmento: " + excerpt(article["article"], keywords))
+    elif not printLine:
         print("Cuerpo de la noticia: " + article["article"])
 
 # Procesar los resultados según su tamaño. Pide lista de resultados y docs
 # (obtenida de retrieveNews) y lista de palabras clave positivas.
-def print_results(results):
+def print_results(results, keywords):
     docs = results[1]
     results = results[0]
     if len(results) < 3:
         for noticia in results:
             print_article(noticia)
-    elif len(results) <= 5:
+    elif len(results) < 5:
         for noticia in results:
-            print_article(noticia, True)
+            print_article(noticia, True, keywords)
     else:
         for noticia in results[:10]:
-            print_article(noticia, False, True)
-    print("Noticias encontradas en los siguientes ficheros:", end="")
+            print_article(noticia, True, keywords, True)
+
+    print("Se han encontrado " + str(len(results)) + " resultados en los documentos:", end=" ")
     for i in docs:
         print(os.path.basename(i), end=", ")
     print()
-    print("Se han encontrado " + str(len(results)) + " resultados.")
 
 # Cargar fichero pickle como objeto
 def load_object(filename):
@@ -222,15 +191,14 @@ if __name__ == "__main__":
     pickle_object = load_object(sys.argv[1])
     posting_list = pickle_object[0]
     news_table = pickle_object[1]
+
     if (len(sys.argv)<3):
         query = input("> Consulta: ")
         while(query):
             # Nos devuelve la lista de noticias que cumplen la query, list(newsID)
-            search_results = search_with_parenthesis(tokenize(query), posting_list, news_table)
-            print_results(retrieveNews(search_results, news_table))
+            search_results = search(tokenize(query), posting_list, news_table)
+            print(search_results)
+            print_results(retrieveNews(search_results, news_table),[])
             query = input("> Consulta: ")
     else:
-        query =sys.argv[2:]
-        print(query)
-        search_results = search_with_parenthesis(tokenize(query[0]), posting_list, news_table)
-        print_results(retrieveNews(search_results, news_table))
+        print_results(retrieveNews(search(sys.argv(2)), news_table))
