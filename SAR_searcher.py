@@ -239,7 +239,7 @@ if __name__ == "__main__":
         print('Formato: SAR_searcher.py <índice_fichero> [consulta]')
         exit(0)
     # Cargamos el objeto pickle
-    #  objeto = (posting_list, news_table)
+    # Objeto = (posting_list, news_table)
     pickle_object = load_object(sys.argv[1])
     posting_list = pickle_object[0]
     news_table = pickle_object[1]
