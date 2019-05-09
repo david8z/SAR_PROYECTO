@@ -14,7 +14,7 @@ def tokenize(query):
     OJO: Este método no hace ningún tipo de limpieza sobre los tokens
     """
 
-    return [x.strip().lower() for x in re.split("(AND|OR)", query)]
+    return [x.strip().lower() for x in re.split("( AND | OR )", query)]
 
 
 def search(query, posting_list, news_table):
