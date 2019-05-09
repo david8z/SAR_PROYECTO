@@ -9,9 +9,9 @@ def tokenize(query):
     Transformamos la query a una lista que realiza el split si encuentra un AND on un OR
     estos símbolos los matiene en la lista com otro elemento
     ---
-    tokenike("a AND b") -> ["a ", "AND", " b"]
+    tokenike("a AND b") -> ["a ", "and", " b"]
 
-    OJO: Este método no hace ningún tipo de limpieza sobre los tokens
+    OJO: Este método convierte a minúsculas TODOS los tokens
     """
 
     return [x.strip().lower() for x in re.split("( AND | OR )", query)]
@@ -29,7 +29,7 @@ def search(query, posting_list, news_table):
 
     OJO: Aquí se convierten las palabras a minúsculas
     """
-    print(query)
+    #print(query)
     # La query no se satisface
     if (len(query) == 0):
         return []
@@ -52,7 +52,7 @@ def retrieveList(w, posting_list, news_table):
     """
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo. EL formato es list(newsID)
     """
-    print(w)
+    #print(w)
     if type(w) == list:
         # w es una lista de newsID
         return w
@@ -71,8 +71,8 @@ def retrieveList(w, posting_list, news_table):
 def sAnd(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
-    print(len(a))
-    print(len(b))
+    #print(len(a))
+    #print(len(b))
     posA = 0
     posB = 0
     res = []
@@ -91,8 +91,8 @@ def sAnd(a, b, posting_list, news_table):
 def sOr(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
-    print(len(a))
-    print(len(b))
+    #print(len(a))
+    #print(len(b))
     posA = 0
     posB = 0
     res = []
