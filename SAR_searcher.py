@@ -14,22 +14,76 @@ def tokenize(query):
     OJO: Este método convierte a minúsculas TODOS los tokens
     """
 
-    return [x.strip().lower() for x in re.split("( AND | OR )", query)]
+    aux = [x.strip().lower() for x in re.split("(AND|OR|[(]|[)])", query)]
+    return [i for i in aux if i]
 
+def search_with_parenthesis(query, posting_list, news_table):
+    print(query)
+    # La query no se satisface
+    if (len(query) == 0):
+        return []
+    # Caso base solo queda el resultado
+    if (len(query) == 1):
+        # La query ha sido solo una palabra
+        if type(query[0]) is not list:
+            return retrieveList(query[0], posting_list, news_table)
+        return query[0]
+
+    # No quedan paréntesis
+    if "(" not in query:
+        return search(query, posting_list, news_table)
+
+    # Apuntará al último "(" visto
+    pointer = 0
+    for i in range(len(query)):
+        if query[pointer] != '(':
+            pointer+=1
+        # Para actualizar el puntero en caso de parentesis anidados
+        elif (query[i] == '(') and (i != pointer):
+            pointer = i
+        elif query[i] == ')':
+            print(pointer, i, query)
+            # We pop ) from the query
+            query.pop(i)
+
+            if (query[pointer+2] == "and"):
+                auxValue = sAnd(query[pointer+1], query[pointer+3], posting_list, news_table)
+                # Check if the element previous to pointer is a not
+                try:
+                    if query[pointer-1] == "not":
+                        auxValue = sorted([k for k in news_table.keys() if k not in auxValue])
+                        # Delete not from query
+                        query.pop(pointer-1)
+                        # Update pos of '('
+                        pointer= pointer - 1
+                except:
+                    pass
+                return search_with_parenthesis(query[:pointer] + [ auxValue ]  + query[pointer+4:],posting_list, news_table)
+            elif (query[pointer+2] == "or"):
+                auxValue = sOr(query[pointer+1], query[pointer+3], posting_list, news_table)
+                # Check if the element previous to pointer is a not
+                try:
+                    if query[pointer-1] == "not":
+                        auxValue = sorted([k for k in news_table.keys() if k not in auxValue])
+                        # Delete not from query
+                        query.pop(pointer-1)
+                        # Update pos of '('
+                        pointer= pointer - 1
+                except:
+                    pass
+                return search_with_parenthesis(query[:pointer] + [ auxValue ]  + query[pointer+4:],posting_list, news_table)
+    return query
 
 def search(query, posting_list, news_table):
     """
     Función recursiva, vamos aplicando la operación necesaria (AND, OR) de izquierda a derecha
     y llamando otra vez a la fucnión search con el resultado de esta y el resto de la queryself.
-
     Anotar que los elementos de la query pueden tener 3 formatos que se trabajarán en el método retrieve_list:
         1. Una lista de newsID
         2. Una string (término) además del símbolo "NOT"
         3. Una string (término)
-
     OJO: Aquí se convierten las palabras a minúsculas
     """
-    #print(query)
     # La query no se satisface
     if (len(query) == 0):
         return []
@@ -42,9 +96,9 @@ def search(query, posting_list, news_table):
     # Si la length es mayor que 1 esto significa que al menos hay 3 elementos y el
     # segundo elemento en la lista ha de ser o un AND o un OR
     if (query[1] == "and"):
-        return search([sAnd(query[0], query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search([sAnd(query[0], query[2], posting_list, news_table)] + query[3:], posting_list, news_table)
     elif (query[1] == "or"):
-        return search([sOr(query[0], query[2].lower(), posting_list, news_table)] + query[3:], posting_list, news_table)
+        return search([sOr(query[0], query[2], posting_list, news_table)] + query[3:], posting_list, news_table)
     return query
 
 
@@ -166,16 +220,19 @@ def get_excerpt(text, keywords):
     first = leng
     last = 0
     #print(keywords)
+    #print(lotext)
     for word in keywords:
-        #print(lotext)
-        fi = lotext.index(word)
-        li = leng-lotext[::-1].index(word)
-        #print(fi)
-        #print(li)
-        if(fi < first):
-            first = fi
-        if(li > last):
-            last = li
+        try:
+            fi = lotext.index(word)
+            li = leng-lotext[::-1].index(word)
+            #print(fi)
+            #print(li)
+            if(fi < first):
+                first = fi
+            if(li > last):
+                last = li
+        except:
+            pass
     #print("primero: "+str(first)+" último:"+str(last))
     first = first if first < 6 else first-6
     last = last if last > len(text)-7 else last + 6
@@ -225,7 +282,7 @@ if __name__ == "__main__":
             tokens = tokenize(query)
             # Obtenemos lista de palabras clave (no son AND, OR o contienen NOT)
             keywords = [x for x in tokens if x not in ["and", "or"] and "not" not in x]
-            search_results = search(tokens, posting_list, news_table)
+            search_results = search_with_parenthesis(tokens, posting_list, news_table)
             #print(search_results)
             print_results(retrieveNews(search_results, news_table),keywords)
             query = input("> Consulta: ")
