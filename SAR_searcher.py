@@ -145,16 +145,42 @@ def print_article(article, excerpt=False, keywords=[], printLine=False):
     else:
         endL = "\n" # Imprimir en nueva línea
 
-    print("Fecha: " + article["date"], end=endL)
-    print("Título: " + article["title"], end=endL)
-    print("Palabras clave: " + article["keywords"])
-
+    print("\033[1m Título: " + article["title"]+"\033[0m", end=endL)
+    print("\033[1m Fecha: \033[0m" + article["date"], end=endL)
+    print("\033[1m Palabras clave: \033[0m" + article["keywords"])
+    if not excerpt:
+        print("\033[1m Cuerpo de la noticia: \033[0m" + article["article"])
     # printLine solo es True cuando hay más de 5 resultados
     if excerpt and not printLine:
-        print("Cuerpo de la noticia: " + article["article"])
-        #print("Fragmento: " + excerpt(article["article"], keywords))
+        print("\033[1m Fragmento: \033[0m" + get_excerpt(article["article"], keywords))
     elif not printLine:
-        print("Cuerpo de la noticia: " + article["article"])
+        print("\033[1m Cuerpo de la noticia: \033[0m" + article["article"])
+
+    print()
+
+# Obtener fragmento de texto que contenga las palabras clave
+def get_excerpt(text, keywords):
+    text=re.split('(\W)', text) #Obtenemos lista del texto para que sea más fácil obtener extracto
+    lotext = [x.lower() for x in text]
+    leng = len(text)
+    first = leng
+    last = 0
+    #print(keywords)
+    for word in keywords:
+        #print(lotext)
+        fi = lotext.index(word)
+        li = leng-lotext[::-1].index(word)
+        #print(fi)
+        #print(li)
+        if(fi < first):
+            first = fi
+        if(li > last):
+            last = li
+    #print("primero: "+str(first)+" último:"+str(last))
+    first = first if first < 6 else first-6
+    last = last if last > len(text)-7 else last + 6
+    #print("primero: "+str(first)+" último:"+str(last))
+    return ''.join(text[first:last])
 
 # Procesar los resultados según su tamaño. Pide lista de resultados y docs
 # (obtenida de retrieveNews) y lista de palabras clave positivas.
@@ -169,9 +195,9 @@ def print_results(results, keywords):
             print_article(noticia, True, keywords)
     else:
         for noticia in results[:10]:
-            print_article(noticia, True, keywords, True)
+            print_article(noticia, False, keywords, True)
 
-    print("Se han encontrado " + str(len(results)) + " resultados en los documentos:", end=" ")
+    print("Se han encontrado \033[1m" + str(len(results)) + " resultados \033[0m en los documentos:", end=" ")
     for i in docs:
         print(os.path.basename(i), end=", ")
     print()
@@ -196,9 +222,12 @@ if __name__ == "__main__":
         query = input("> Consulta: ")
         while(query):
             # Nos devuelve la lista de noticias que cumplen la query, list(newsID)
-            search_results = search(tokenize(query), posting_list, news_table)
-            print(search_results)
-            print_results(retrieveNews(search_results, news_table),[])
+            tokens = tokenize(query)
+            # Obtenemos lista de palabras clave (no son AND, OR o contienen NOT)
+            keywords = [x for x in tokens if x not in ["and", "or"] and "not" not in x]
+            search_results = search(tokens, posting_list, news_table)
+            #print(search_results)
+            print_results(retrieveNews(search_results, news_table),keywords)
             query = input("> Consulta: ")
     else:
         print_results(retrieveNews(search(sys.argv(2)), news_table))
