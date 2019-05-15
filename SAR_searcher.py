@@ -141,10 +141,24 @@ def retrieveList(w, posting_list, news_table):
         return [x for x, y in posting_list.get(w, [])]
 
 def merged_sentence(words, news_list, posting_list):
-    pass
-    # pos_list = []
-    # for news in news_list:
-    #     f_word =
+    pos_list = []
+    f_news_list = []
+    for news in news_list:
+        print(news)
+        f_word = posting_list[words[0]]
+        f_word = [y for x,y in f_word if x == news][0]
+        print(type(f_word))
+        for i in range(1,len(words)):
+            i_word = posting_list.get(words[i])
+            #print("LISR")
+            #print(i_word)
+            i_word = [y for x, y in i_word if x == news][0]
+            #print(i_word)
+            pos_list = [x for x in f_word if x+i in i_word]
+        if len(pos_list)>0:
+            f_news_list.append(news)
+    print(f_news_list)
+    return f_news_list
 
 
 # OPERACIONES LÓGICAS: Devuelven lista de newsID
