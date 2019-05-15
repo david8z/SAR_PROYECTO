@@ -16,7 +16,6 @@ def tokenize(query, stemming = False):
 
     OJO: Este método convierte a minúsculas TODOS los tokens
     """
-    print(query)
     aux = [x.strip().lower() for x in re.split("(AND|OR|[(]|[)])", query)]
     if stemming:
         stemmer = SnowballStemmer('spanish')
@@ -225,13 +224,13 @@ def print_article(article, excerpt=False, keywords = [], printLine=False):
     print("\033[1m Título: " + article["title"]+"\033[0m", end=endL)
     print("\033[1m Fecha: \033[0m" + article["date"], end=endL)
     print("\033[1m Palabras clave: \033[0m" + article["keywords"])
-    if not excerpt:
+
+    # Casos en el que hay más de 10 noticias
+    if not excerpt and not printLine:
         print("\033[1m Cuerpo de la noticia: \033[0m" + article["article"])
     # printLine solo es True cuando hay más de 5 resultados
-    if excerpt and not printLine:
+    elif excerpt and not printLine:
         print("\033[1m Fragmento: \033[0m" + get_excerpt(article["article"], keywords))
-    elif not printLine:
-        print("\033[1m Cuerpo de la noticia: \033[0m" + article["article"])
 
     print()
 
