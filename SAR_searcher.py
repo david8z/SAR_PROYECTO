@@ -16,6 +16,7 @@ def tokenize(query, stemming = False):
 
     OJO: Este método convierte a minúsculas TODOS los tokens
     """
+    print(query)
     aux = [x.strip().lower() for x in re.split("(AND|OR|[(]|[)])", query)]
     if stemming:
         stemmer = SnowballStemmer('spanish')
@@ -321,7 +322,7 @@ if __name__ == "__main__":
         else:
             query =sys.argv[2:]
             # Nos devuelve la lista de noticias que cumplen la query, list(newsID)
-            tokens = tokenize(query)
+            tokens = tokenize(" ".join(query))
             # Obtenemos lista de palabras clave (no son AND, OR o contienen NOT)
             keywords = [x for x in tokens if x not in ["and", "or"] and "not" not in x]
             search_results = search_with_parenthesis(tokens, posting_list, news_table)
