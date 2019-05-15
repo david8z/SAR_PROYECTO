@@ -249,9 +249,9 @@ def get_excerpt(text, keywords):
     for word in keywords:
         len_word = len(word.strip('"'))
         fi = lower_text.index(word.strip('"'))
-        print(fi)
+        # +1 y -1 incuidos para arreglar formato
         if len(text[:fi].split()) < 6:
-            result = result + text[:fi]+ text[fi:fi+len_word] +" ".join(text[fi+len_word:].split()[:6]) + "..."
+            result = result + text[:fi-1]+ text[fi-1:fi+len_word+1] +" ".join(text[fi+len_word+1:].split()[:6]) + "..."
         else:
             result = result + "..."+ " ".join(text[:fi-1].split()[-6:]) + text[fi-1:fi+len_word+1] +" ".join(text[fi+len_word+1:].split()[:6]) + "..."
 
