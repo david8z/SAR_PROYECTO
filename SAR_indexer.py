@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 import re, sys, glob, os, json, pickle
 from operator import itemgetter
+from nltk.stem import SnowballStemmer
+
 
 
 # Matching con alphanumericos
 clean_re = re.compile('[_\W]+')
 # dict(termino) -> dict(newsId) -> list(posTer)
 posting_list = dict()
+# dict(stem(termino)) -> dict(newsId) -> list(posTer)
+posting_stem_list = dict()
 # dict(newsId) -> tupla(docId, posNot)
 news_table = dict()
 # dict(docId) -> path_document
 pathDoc = dict()
 
+stemmer = SnowballStemmer('spanish')
 
 def clean_text(text):
     """
@@ -32,6 +37,15 @@ def add_to_posting_list(termino, newsId, posTer):
     listPosiciones.append(posTer)
     dictNoticias[newsId] = listPosiciones
     posting_list[termino] = dictNoticias
+
+    # With stemming
+
+    dictNoticiasStem = posting_stem_list.get(stemmer.stem(termino), dict())
+    listPosicionesStem = dictNoticiasStem.get(newsId, list())
+    listPosicionesStem.append(posTer)
+    dictNoticiasStem[newsId] = listPosicionesStem
+    posting_stem_list[stemmer.stem(termino)] = dictNoticiasStem
+
 
 
 def add_to_news_table(docId, posNot, newsId):
@@ -99,5 +113,6 @@ if __name__ == "__main__":
         ficheroPickle = sys.argv[2]
         indexar_noticias(dir_noticias)
         posting_list = sorted_dict(posting_list)
-        objeto = (posting_list, news_table)
+        posting_stem_list = sorted_dict(posting_stem_list)
+        objeto = (posting_list,posting_stem_list, news_table)
         save_object(objeto, ficheroPickle)

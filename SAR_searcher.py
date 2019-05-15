@@ -3,22 +3,28 @@ import sys
 import pickle
 import json
 import os
+from nltk.stem import SnowballStemmer
 
-def tokenize(query):
+
+def tokenize(query, stemming = False):
     """
     Transformamos la query a una lista que realiza el split si encuentra un AND on un OR
-    estos símbolos los matiene en la lista com otro elemento
+    estos símbolos los matiene en la lista com otro elemento además separá los parentesis
+    y transforma los términos a sus stems si stemming = True
     ---
     tokenike("a AND b") -> ["a ", "and", " b"]
 
     OJO: Este método convierte a minúsculas TODOS los tokens
     """
-
     aux = [x.strip().lower() for x in re.split("(AND|OR|[(]|[)])", query)]
-    return [i for i in aux if i]
+    if stemming:
+        stemmer = SnowballStemmer('spanish')
+        # Usamos map porque stemming de "not valencia" != stemming("not") + stemming("valencia")
+        return [" ".join(list(map(stemmer.stem,i.split()))) for i in aux if i]
+    else:
+        return [i for i in aux if i]
 
 def search_with_parenthesis(query, posting_list, news_table):
-    print(query)
     # La query no se satisface
     if (len(query) == 0):
         return []
@@ -35,15 +41,18 @@ def search_with_parenthesis(query, posting_list, news_table):
 
     # Apuntará al último "(" visto
     pointer = 0
+
     for i in range(len(query)):
+
+        # Avanzamos hasta que encontremos e primer "("
         if query[pointer] != '(':
             pointer+=1
         # Para actualizar el puntero en caso de parentesis anidados
         elif (query[i] == '(') and (i != pointer):
             pointer = i
+        # Ha encontrado el parentesois que lo cierra
         elif query[i] == ')':
-            print(pointer, i, query)
-            # We pop ) from the query
+            # We pop ")" from the query
             query.pop(i)
 
             if (query[pointer+2] == "and"):
@@ -51,6 +60,7 @@ def search_with_parenthesis(query, posting_list, news_table):
                 # Check if the element previous to pointer is a not
                 try:
                     if query[pointer-1] == "not":
+                        # Usamos sorted porque las keys no están ordenadas
                         auxValue = sorted([k for k in news_table.keys() if k not in auxValue])
                         # Delete not from query
                         query.pop(pointer-1)
@@ -64,6 +74,7 @@ def search_with_parenthesis(query, posting_list, news_table):
                 # Check if the element previous to pointer is a not
                 try:
                     if query[pointer-1] == "not":
+                        # Usamos sorted porque las keys no están ordenadas
                         auxValue = sorted([k for k in news_table.keys() if k not in auxValue])
                         # Delete not from query
                         query.pop(pointer-1)
@@ -106,14 +117,17 @@ def retrieveList(w, posting_list, news_table):
     """
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo. EL formato es list(newsID)
     """
-    #print(w)
     if type(w) == list:
         # w es una lista de newsID
         return w
-    if "not" in w:
+    if "not" in w.split():
         # Devolver complemento de lista de newsID de w.split()[1]
         # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
+        # Hay que aplicar sorted ya que al seleccionar los elementos de news_table.keys estos están desordenados.
+        print(w)
+        print(w.split()[1])
+        print(len([x for x, y in posting_list.get(w.split()[1], [])]))
         return sorted([k for k in news_table.keys() if k not in [x for x, y in posting_list.get(w.split()[1], [])]])
     elif '"' in w:
         w = w.replace('"', '').split() # ["palabra", "palabra"]
@@ -127,17 +141,16 @@ def retrieveList(w, posting_list, news_table):
         return [x for x, y in posting_list.get(w, [])]
 
 def merged_sentence(words, news_list, posting_list):
-    pos_list = []
-    for news in news_list:
-        f_word =
+    pass
+    # pos_list = []
+    # for news in news_list:
+    #     f_word =
 
 
 # OPERACIONES LÓGICAS: Devuelven lista de newsID
 def sAnd(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
-    #print(len(a))
-    #print(len(b))
     posA = 0
     posB = 0
     res = []
@@ -156,8 +169,6 @@ def sAnd(a, b, posting_list, news_table):
 def sOr(a, b, posting_list, news_table):
     a = retrieveList(a, posting_list, news_table)
     b = retrieveList(b, posting_list, news_table)
-    #print(len(a))
-    #print(len(b))
     posA = 0
     posB = 0
     res = []
@@ -204,7 +215,7 @@ def retrieveNews(newsList, news_table):
 
 # Imprimir un artículo: muestra cuerpo entero o extracto,
 # en caso de printLine=True lo imprime en una línea sin imprimir el cuerpo
-def print_article(article, excerpt=False, keywords=[], printLine=False):
+def print_article(article, excerpt=False, keywords = [], printLine=False):
     if printLine:
         endL = " " # Seguir en misma línea
     else:
@@ -258,7 +269,7 @@ def print_results(results, keywords):
     if len(results) < 3:
         for noticia in results:
             print_article(noticia)
-    elif len(results) < 5:
+    elif len(results) <= 5:
         for noticia in results:
             print_article(noticia, True, keywords)
     else:
@@ -269,6 +280,7 @@ def print_results(results, keywords):
     for i in docs:
         print(os.path.basename(i), end=", ")
     print()
+    print("Se han encontrado " + str(len(results)) + " resultados.")
 
 # Cargar fichero pickle como objeto
 def load_object(filename):
@@ -281,12 +293,13 @@ if __name__ == "__main__":
         print('Formato: SAR_searcher.py <índice_fichero> [consulta]')
         exit(0)
     # Cargamos el objeto pickle
-    #  objeto = (posting_list, news_table)
+    # Objeto = (posting_list, posting_stem_list, news_table)
     pickle_object = load_object(sys.argv[1])
     posting_list = pickle_object[0]
-    news_table = pickle_object[1]
+    posting_stem_list = pickle_object[1]
+    news_table = pickle_object[2]
 
-    if (len(sys.argv)<3):
+    if (len(sys.argv) < 3):
         query = input("> Consulta: ")
         while(query):
             # Nos devuelve la lista de noticias que cumplen la query, list(newsID)
@@ -298,4 +311,18 @@ if __name__ == "__main__":
             print_results(retrieveNews(search_results, news_table),keywords)
             query = input("> Consulta: ")
     else:
-        print_results(retrieveNews(search(sys.argv(2)), news_table))
+        if "-s" in sys.argv:
+            query = sys.argv[3:]
+            # Nos devuelve la lista de noticias que cumplen la query, list(newsID)
+            tokens = tokenize(" ".join(query), True)
+            # Obtenemos lista de palabras clave (no son AND, OR o contienen NOT)
+            keywords = [x for x in tokens if x not in ["and", "or"] and "not" not in x]
+            search_results = search_with_parenthesis(tokens, posting_stem_list, news_table)
+        else:
+            query =sys.argv[2:]
+            # Nos devuelve la lista de noticias que cumplen la query, list(newsID)
+            tokens = tokenize(query)
+            # Obtenemos lista de palabras clave (no son AND, OR o contienen NOT)
+            keywords = [x for x in tokens if x not in ["and", "or"] and "not" not in x]
+            search_results = search_with_parenthesis(tokens, posting_list, news_table)
+        print_results(retrieveNews(search_results, news_table), keywords)
