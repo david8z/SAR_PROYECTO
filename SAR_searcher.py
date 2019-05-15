@@ -115,6 +115,21 @@ def retrieveList(w, posting_list, news_table):
         # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
         return sorted([k for k in news_table.keys() if k not in [x for x, y in posting_list.get(w.split()[1], [])]])
+    elif '"' in w:
+        w = w.replace('"', '').split()
+        print(w)
+        pos_list = list()
+        for word in w:
+            pos_list.append([x for x, y in posting_list.get(word, [])])
+
+        merged_list = pos_list[0]
+        for i in range(1,len(pos_list)):
+            x = merged_list[0]
+            print(x)
+            print(type(i))
+            merged_list = [x for x in merged_list if x+i in pos_list[i]]
+
+        return merged_list
     else:
         # Devuelve la lista de newsID. Si no existe el término, devuelve lista vacía.
         return [x for x, y in posting_list.get(w, [])]
