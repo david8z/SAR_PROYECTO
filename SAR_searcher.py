@@ -141,20 +141,15 @@ def merged_sentence(words, news_list, posting_list):
     pos_list = []
     f_news_list = []
     for news in news_list:
-        #print(news)
         f_word = posting_list[words[0]]
-        pos_list = [y for x,y in f_word if x == news][0]
-        #print(type(f_word))
+        pos_list = [y for x,y in f_word if x == news][0] # Obtenemos la lista de posiciones de la primera palabra
         for i in range(1,len(words)):
             i_word = posting_list.get(words[i])
-            #print("LISR")
-            #print(i_word)
-            i_word = [y for x, y in i_word if x == news][0]
-            #print(i_word)
-            pos_list = [x for x in pos_list if x+i in i_word]
-        if len(pos_list)>0:
+            i_word = [y for x, y in i_word if x == news][0] # Obtenemos la lista de posiciones de la palabra i-ésima
+            pos_list = [x for x in pos_list if x+i in i_word] # Si  posición_primera_palabra+i = posición_palabra_i entonces conservamos esa posición, sino la borramos de la lista
+        # Aquí ya tenemos una lista de posiciones a partir de la cual podemos encontrar la secuencia de palabras
+        if len(pos_list)>0: # Si la lista tiene algún elemento, entonces la noticia contiene la frase
             f_news_list.append(news)
-    print(f_news_list)
     return f_news_list
 
 
