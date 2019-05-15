@@ -129,7 +129,6 @@ def retrieveList(w, posting_list, news_table):
     elif '"' in w:
         w = w.replace('"', '').split() # ["palabra", "palabra"]
         query = tokenize(' AND '.join(w)) # ["palabra", "AND", "palabra"] --> search() --> lista de news_id comunes
-        print(query)
         news_list = search(query, posting_list, news_table) # Tenemos lista de newsID comunes entre todas las palabras
 
         return merged_sentence(w, news_list, posting_list)
@@ -138,7 +137,24 @@ def retrieveList(w, posting_list, news_table):
         return [x for x, y in posting_list.get(w, [])]
 
 def merged_sentence(words, news_list, posting_list):
-    pass
+    pos_list = []
+    f_news_list = []
+    for news in news_list:
+        print(news)
+        f_word = posting_list[words[0]]
+        f_word = [y for x,y in f_word if x == news][0]
+        print(type(f_word))
+        for i in range(1,len(words)):
+            i_word = posting_list.get(words[i])
+            #print("LISR")
+            #print(i_word)
+            i_word = [y for x, y in i_word if x == news][0]
+            #print(i_word)
+            pos_list = [x for x in f_word if x+i in i_word]
+        if len(pos_list)>0:
+            f_news_list.append(news)
+    print(f_news_list)
+    return f_news_list
 
 
 # OPERACIONES LÓGICAS: Devuelven lista de newsID
@@ -218,7 +234,7 @@ def print_article(article, excerpt=False, keywords = [], printLine=False):
     print("\033[1m Título: " + article["title"]+"\033[0m", end=endL)
     print("\033[1m Fecha: \033[0m" + article["date"], end=endL)
     print("\033[1m Palabras clave: \033[0m" + article["keywords"])
-
+    print("keywords")
     # Casos en el que hay más de 10 noticias
     if not excerpt and not printLine:
         print("\033[1m Cuerpo de la noticia: \033[0m" + article["article"])
