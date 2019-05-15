@@ -125,9 +125,6 @@ def retrieveList(w, posting_list, news_table):
         # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
         # Hay que aplicar sorted ya que al seleccionar los elementos de news_table.keys estos están desordenados.
-        print(w)
-        print(w.split()[1])
-        print(len([x for x, y in posting_list.get(w.split()[1], [])]))
         return sorted([k for k in news_table.keys() if k not in [x for x, y in posting_list.get(w.split()[1], [])]])
     elif '"' in w:
         w = w.replace('"', '').split() # ["palabra", "palabra"]
@@ -142,9 +139,6 @@ def retrieveList(w, posting_list, news_table):
 
 def merged_sentence(words, news_list, posting_list):
     pass
-    # pos_list = []
-    # for news in news_list:
-    #     f_word =
 
 
 # OPERACIONES LÓGICAS: Devuelven lista de newsID
@@ -265,7 +259,9 @@ def get_excerpt(text, keywords):
 # (obtenida de retrieveNews) y lista de palabras clave positivas.
 def print_results(results, keywords):
     docs = results[1]
-    results = results[0]
+
+    # Ordenamos las noticias en base al número de ocurrencias de las keywords
+    results = sorted(results[0], key=lambda noticia:sum([noticia["article"].split().count(x) for x in keywords]), reverse=True)
     if len(results) < 3:
         for noticia in results:
             print_article(noticia)
