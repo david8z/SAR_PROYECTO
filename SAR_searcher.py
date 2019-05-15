@@ -129,6 +129,7 @@ def retrieveList(w, posting_list, news_table):
     elif '"' in w:
         w = w.replace('"', '').split() # ["palabra", "palabra"]
         query = tokenize(' AND '.join(w)) # ["palabra", "AND", "palabra"] --> search() --> lista de news_id comunes
+        #print(query)
         news_list = search(query, posting_list, news_table) # Tenemos lista de newsID comunes entre todas las palabras
 
         return merged_sentence(w, news_list, posting_list)
@@ -140,17 +141,17 @@ def merged_sentence(words, news_list, posting_list):
     pos_list = []
     f_news_list = []
     for news in news_list:
-        print(news)
+        #print(news)
         f_word = posting_list[words[0]]
-        f_word = [y for x,y in f_word if x == news][0]
-        print(type(f_word))
+        pos_list = [y for x,y in f_word if x == news][0]
+        #print(type(f_word))
         for i in range(1,len(words)):
             i_word = posting_list.get(words[i])
             #print("LISR")
             #print(i_word)
             i_word = [y for x, y in i_word if x == news][0]
             #print(i_word)
-            pos_list = [x for x in f_word if x+i in i_word]
+            pos_list = [x for x in pos_list if x+i in i_word]
         if len(pos_list)>0:
             f_news_list.append(news)
     print(f_news_list)
@@ -318,6 +319,7 @@ if __name__ == "__main__":
             tokens = tokenize(query)
             # Obtenemos lista de palabras clave (no son AND, OR o contienen NOT)
             keywords = [x for x in tokens if x not in ["and", "or"] and "not" not in x]
+            print(keywords)
             search_results = search_with_parenthesis(tokens, posting_list, news_table)
             #print(search_results)
             print_results(retrieveNews(search_results, news_table),keywords)
