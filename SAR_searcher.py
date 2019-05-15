@@ -242,16 +242,18 @@ def print_article(article, excerpt=False, keywords = [], printLine=False):
 # Obtener fragmento de texto que contenga las palabras clave
 def get_excerpt(text, keywords):
     #Obtenemos lista del texto para que sea más fácil obtener extracto
-    text = re.split('(\W)+', text)
-    lower_text = [x.lower() for x in text]
+
+    lower_text = text.lower()
     len_text = len(text)
     result = ""
     for word in keywords:
-        fi = lower_text.index(word)
-        if fi < 12:
-            result = result + "".join(text[0:fi+12]) + "..."
+        len_word = len(word.strip('"'))
+        fi = lower_text.index(word.strip('"'))
+        print(fi)
+        if len(text[:fi].split()) < 6:
+            result = result + text[:fi]+ text[fi:fi+len_word] +" ".join(text[fi+len_word:].split()[:6]) + "..."
         else:
-            result= "..."+result + "".join(text[fi-12:fi+12]) + "..."
+            result = result + "..."+ " ".join(text[:fi-1].split()[-6:]) + text[fi-1:fi+len_word+1] +" ".join(text[fi+len_word+1:].split()[:6]) + "..."
 
     return result
 
@@ -301,7 +303,8 @@ if __name__ == "__main__":
             tokens = tokenize(query)
             # Obtenemos lista de palabras clave (no son AND, OR o contienen NOT)
             # limpiamos con el sub para eliminar ""
-            keywords = [x for x in re.compile('[_\W]+').sub("","".join(tokens)) if x not in ["and", "or"] and "not" not in x]
+            keywords = [x for x in tokens if x not in ["and", "or"] and "not" not in x]
+            print(keywords)
             search_results = search_with_parenthesis(tokens, posting_list, news_table)
             #print(search_results)
             print_results(retrieveNews(search_results, news_table),keywords)
@@ -321,6 +324,7 @@ if __name__ == "__main__":
             tokens = tokenize(" ".join(query))
             # Obtenemos lista de palabras clave (no son AND, OR o contienen NOT)
             # limpiamos con el sub para eliminar ""
-            keywords = [x for x in [re.compile('[_\W]+').sub("","".join(tokens))] if x not in ["and", "or"] and "not" not in x]
+            keywords = [x for x in tokens if x not in ["and", "or"] and "not" not in x]
+
             search_results = search_with_parenthesis(tokens, posting_list, news_table)
         print_results(retrieveNews(search_results, news_table), keywords)
