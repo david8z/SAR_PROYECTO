@@ -19,13 +19,12 @@ def tokenize(query, stemming = False):
     aux = [x.strip().lower() for x in re.split("(AND|OR|[(]|[)])", query)]
     if stemming:
         stemmer = SnowballStemmer('spanish')
-        return [stemmer.stem(i) for i in aux if i]
+        # Usamos map porque stemming de "not valencia" != stemming("not") + stemming("valencia")
+        return [" ".join(list(map(stemmer.stem,i.split()))) for i in aux if i]
     else:
         return [i for i in aux if i]
 
 def search_with_parenthesis(query, posting_list, news_table):
-
-    print(query)
     # La query no se satisface
     if (len(query) == 0):
         return []
@@ -120,7 +119,6 @@ def retrieveList(w, posting_list, news_table):
     """
     Hace que los contenidos de las queries todos tengan el mismo formato en el algoritmo. EL formato es list(newsID)
     """
-    print(len(posting_list.keys()))
     if type(w) == list:
         # w es una lista de newsID
         return w
@@ -129,6 +127,9 @@ def retrieveList(w, posting_list, news_table):
         # Quitamos de la lista de newsID en news_table los newsID en los que aparezca w
         # Devuelve la lista de newsID
         # Hay que aplicar sorted ya que al seleccionar los elementos de news_table.keys estos están desordenados.
+        print(w)
+        print(w.split()[1])
+        print(len([x for x, y in posting_list.get(w.split()[1], [])]))
         return sorted([k for k in news_table.keys() if k not in [x for x, y in posting_list.get(w.split()[1], [])]])
     else:
         # Devuelve la lista de newsID. Si no existe el término, devuelve lista vacía.
@@ -271,6 +272,4 @@ if __name__ == "__main__":
         else:
             query =sys.argv[2:]
             search_results = search_with_parenthesis(tokenize(" ".join(query)), posting_list, news_table)
-
-
         print_results(retrieveNews(search_results, news_table))
