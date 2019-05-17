@@ -247,14 +247,19 @@ def get_excerpt(text, keywords):
     len_text = len(text)
     result = ""
     for word in keywords:
-        len_word = len(word.strip('"'))
-        fi = lower_text.index(word.strip('"'))
-        # +1 y -1 incuidos para arreglar formato
-        if len(text[:fi].split()) < 6:
-            result = result + text[:fi-1]+ text[fi-1:fi+len_word+1] +" ".join(text[fi+len_word+1:].split()[:6]) + "..."
-        else:
-            result = result + "..."+ " ".join(text[:fi-1].split()[-6:]) + text[fi-1:fi+len_word+1] +" ".join(text[fi+len_word+1:].split()[:6]) + "..."
-
+        # In case a keyword is a not
+        try:
+            len_word = len(word.strip('"'))
+            fi = lower_text.index(word.strip('"'))
+            # +1 y -1 incuidos para arreglar formato
+            if len(text[:fi].split()) < 6:
+                result = result + text[:fi-1]+ text[fi-1:fi+len_word+1] +" ".join(text[fi+len_word+1:].split()[:6]) + "..."
+            else:
+                result = result + "..."+ " ".join(text[:fi-1].split()[-6:]) + text[fi-1:fi+len_word+1] +" ".join(text[fi+len_word+1:].split()[:6]) + "..."
+        except:
+            pass
+    if result == "":
+        return text.split()[:100]
     return result
 
 # Procesar los resultados según su tamaño. Pide lista de resultados y docs
@@ -262,7 +267,8 @@ def get_excerpt(text, keywords):
 def print_results(results, keywords):
     docs = results[1]
     # Ordenamos las noticias en base al número de ocurrencias de las keywords
-    results = sorted(results[0], key=lambda noticia:sum([noticia["article"].split().count(x) for x in keywords]), reverse=True)
+    results = sorted(results[0], key=lambda noticia:sum([noticia["article"].split().count(x.strip('"')) for x in keywords]), reverse=True)
+
     if len(results) < 3:
         for noticia in results:
             print_article(noticia)
